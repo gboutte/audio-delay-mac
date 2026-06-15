@@ -1,0 +1,10 @@
+# Build produit par build.sh
+build/
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+*.xcuserstate
+.swiftpm/
