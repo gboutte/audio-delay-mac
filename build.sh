@@ -52,6 +52,8 @@ cat > "$APP_DIR/Contents/Info.plist" <<PLIST
     <key>CFBundleVersion</key>         <string>1</string>
     <key>LSMinimumSystemVersion</key>  <string>13.0</string>
     <key>NSHighResolutionCapable</key> <true/>
+    <!-- Agent app : pas d'icône dans le Dock, vit uniquement dans la barre de menus. -->
+    <key>LSUIElement</key>             <true/>
     <!-- Texte affiché lors de la demande d'autorisation micro (obligatoire pour capturer l'audio). -->
     <key>NSMicrophoneUsageDescription</key>
     <string>Cette app capture le son système (via BlackHole) pour lui appliquer un délai avant de le renvoyer vers votre sortie audio.</string>

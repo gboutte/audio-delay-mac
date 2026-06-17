@@ -2,8 +2,8 @@ import SwiftUI
 
 /// Interface principale : sélecteurs entrée/sortie, curseur de délai, Start/Stop.
 struct ContentView: View {
-    @StateObject private var vm = AudioDelayViewModel()
-    @StateObject private var metronome = MetronomeController()
+    @ObservedObject var vm: AudioDelayViewModel
+    @ObservedObject var metronome: MetronomeController
     @State private var showMetronome = false
 
     var body: some View {
