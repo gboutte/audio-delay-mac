@@ -53,7 +53,7 @@ struct ContentView: View {
             } label: {
                 Label("Refresh", systemImage: "arrow.clockwise")
             }
-            .help("Reload the device list (e.g. after connecting the BT amp).")
+            .help("Reload the device list (e.g. after connecting a new output device).")
         }
     }
 
@@ -98,7 +98,7 @@ struct ContentView: View {
             .disabled(vm.isRunning)
 
             // SORTIE : vers l'ampli Bluetooth.
-            Picker("Output (BT amp)", selection: $vm.selectedOutputID) {
+            Picker("Output", selection: $vm.selectedOutputID) {
                 ForEach(vm.outputDevices) { device in
                     Text(device.name).tag(Optional(device.id))
                 }
