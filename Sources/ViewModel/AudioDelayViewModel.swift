@@ -15,9 +15,17 @@ final class AudioDelayViewModel: ObservableObject {
     @Published var inputDevices: [AudioDevice] = []
     @Published var outputDevices: [AudioDevice] = []
 
-    // Sélections courantes (on stocke l'ID, source de vérité côté Core Audio).
-    @Published var selectedInputID: AudioDeviceID?
-    @Published var selectedOutputID: AudioDeviceID?
+    // Sélections courantes (on stocke l'ID runtime, source de vérité côté Core Audio).
+    // Le `didSet` persiste l'UID STABLE du périphérique (l'ID, lui, change entre deux lancements).
+    @Published var selectedInputID: AudioDeviceID? {
+        didSet { persistSelection(selectedInputID, in: inputDevices, key: Self.inputUIDKey) }
+    }
+    @Published var selectedOutputID: AudioDeviceID? {
+        didSet { persistSelection(selectedOutputID, in: outputDevices, key: Self.outputUIDKey) }
+    }
+
+    private static let inputUIDKey = "audioDelay.inputUID"
+    private static let outputUIDKey = "audioDelay.outputUID"
 
     /// Clé `UserDefaults` pour persister le délai entre deux lancements de l'app.
     private static let delayKey = "audioDelay.delayMs"
@@ -51,20 +59,35 @@ final class AudioDelayViewModel: ObservableObject {
         inputDevices = all.filter(\.hasInput)
         outputDevices = all.filter(\.hasOutput)
 
-        // Entrée : on privilégie BlackHole si présent (c'est la source qu'on veut retarder),
-        // sinon l'entrée par défaut.
+        // Entrée : on préfère le dernier périphérique mémorisé (par UID), puis BlackHole (la
+        // source qu'on veut retarder), puis l'entrée par défaut.
         if selectedInputID == nil || !inputDevices.contains(where: { $0.id == selectedInputID }) {
             let blackHole = inputDevices.first { $0.name.localizedCaseInsensitiveContains("blackhole") }
-            selectedInputID = blackHole?.id
+            selectedInputID = savedDeviceID(forKey: Self.inputUIDKey, in: inputDevices)
+                ?? blackHole?.id
                 ?? AudioDeviceService.defaultInputDeviceID()
                 ?? inputDevices.first?.id
         }
 
-        // Sortie : sortie par défaut, sinon la première (l'utilisateur choisira son ampli BT).
+        // Sortie : on préfère le dernier périphérique mémorisé (par UID), puis la sortie par défaut.
         if selectedOutputID == nil || !outputDevices.contains(where: { $0.id == selectedOutputID }) {
-            selectedOutputID = AudioDeviceService.defaultOutputDeviceID()
+            selectedOutputID = savedDeviceID(forKey: Self.outputUIDKey, in: outputDevices)
+                ?? AudioDeviceService.defaultOutputDeviceID()
                 ?? outputDevices.first?.id
         }
+    }
+
+    /// Re-résout un UID mémorisé vers l'`AudioDeviceID` courant (l'ID change entre deux lancements,
+    /// pas l'UID). Renvoie nil si le périphérique n'est plus présent.
+    private func savedDeviceID(forKey key: String, in devices: [AudioDevice]) -> AudioDeviceID? {
+        guard let uid = UserDefaults.standard.string(forKey: key) else { return nil }
+        return devices.first(where: { $0.uid == uid })?.id
+    }
+
+    /// Persiste l'UID du périphérique sélectionné (clé stable, contrairement à l'ID runtime).
+    private func persistSelection(_ id: AudioDeviceID?, in devices: [AudioDevice], key: String) {
+        guard let id, let uid = devices.first(where: { $0.id == id })?.uid, !uid.isEmpty else { return }
+        UserDefaults.standard.set(uid, forKey: key)
     }
 
     // MARK: - Start / Stop
