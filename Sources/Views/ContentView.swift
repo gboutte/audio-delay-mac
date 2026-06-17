@@ -35,7 +35,7 @@ struct ContentView: View {
     private var header: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Délai audio").font(.title2).bold()
+                Text("Audio Delay").font(.title2).bold()
                 Text(vm.statusMessage)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -44,16 +44,16 @@ struct ContentView: View {
             Button {
                 showMetronome = true
             } label: {
-                Label("Métronome", systemImage: "metronome")
+                Label("Metronome", systemImage: "metronome")
             }
-            .help("Métronome de calibration : aligne le flash (image projetée) avec le clic (audio retardé).")
+            .help("Calibration metronome: align the bar hitting the marker (projected image) with the click (delayed audio).")
 
             Button {
                 vm.refreshDevices()
             } label: {
-                Label("Rafraîchir", systemImage: "arrow.clockwise")
+                Label("Refresh", systemImage: "arrow.clockwise")
             }
-            .help("Recharger la liste des périphériques (ex. après avoir branché l'ampli BT).")
+            .help("Reload the device list (e.g. after connecting the BT amp).")
         }
     }
 
@@ -62,7 +62,7 @@ struct ContentView: View {
     /// (il lit `vm.inputLevel` à la demande, sans `@Published` → pas de re-render global).
     private var inputMeter: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Niveau d'entrée")
+            Text("Input level")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             GeometryReader { geo in
@@ -90,7 +90,7 @@ struct ContentView: View {
     private var devicePickers: some View {
         VStack(alignment: .leading, spacing: 12) {
             // ENTRÉE : la source du son à retarder (idéalement BlackHole).
-            Picker("Entrée (source)", selection: $vm.selectedInputID) {
+            Picker("Input (source)", selection: $vm.selectedInputID) {
                 ForEach(vm.inputDevices) { device in
                     Text(device.name).tag(Optional(device.id))
                 }
@@ -98,7 +98,7 @@ struct ContentView: View {
             .disabled(vm.isRunning)
 
             // SORTIE : vers l'ampli Bluetooth.
-            Picker("Sortie (ampli BT)", selection: $vm.selectedOutputID) {
+            Picker("Output (BT amp)", selection: $vm.selectedOutputID) {
                 ForEach(vm.outputDevices) { device in
                     Text(device.name).tag(Optional(device.id))
                 }
@@ -106,7 +106,7 @@ struct ContentView: View {
             .disabled(vm.isRunning)
 
             if vm.inputDevices.first(where: { $0.name.localizedCaseInsensitiveContains("blackhole") }) == nil {
-                Label("BlackHole non détecté en entrée — voir le README pour l'activer.",
+                Label("BlackHole not detected as an input — see the README to enable it.",
                       systemImage: "exclamationmark.triangle")
                     .font(.caption)
                     .foregroundStyle(.orange)

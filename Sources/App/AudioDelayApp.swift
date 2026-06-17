@@ -12,7 +12,7 @@ struct AudioDelayApp: App {
 
     var body: some Scene {
         // Fenêtre principale (unique, ré-ouvrable depuis le menu).
-        Window("Délai audio", id: "main") {
+        Window("Audio Delay", id: "main") {
             ContentView(vm: vm, metronome: metronome)
         }
         .windowResizability(.contentSize)

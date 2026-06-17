@@ -11,13 +11,13 @@ enum DelayEngineError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .componentUnavailable:
-            return "AudioUnit HAL introuvable sur ce système."
+            return "HAL AudioUnit not available on this system."
         case .couldNotSetProperty(let name, let status):
-            return "Échec de configuration « \(name) » (status \(status))."
+            return "Failed to configure \"\(name)\" (status \(status))."
         case .initFailed(let status):
-            return "Initialisation de l'AudioUnit impossible (status \(status))."
+            return "Could not initialize the AudioUnit (status \(status))."
         case .startFailed(let status):
-            return "Démarrage de l'AudioUnit impossible (status \(status))."
+            return "Could not start the AudioUnit (status \(status))."
         }
     }
 }

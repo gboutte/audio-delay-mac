@@ -13,9 +13,9 @@ struct MetronomeView: View {
     var body: some View {
         VStack(spacing: 20) {
             HStack {
-                Text("Métronome de calibration").font(.headline)
+                Text("Calibration metronome").font(.headline)
                 Spacer()
-                Button("Fermer") { dismiss() }
+                Button("Close") { dismiss() }
             }
 
             sweep
@@ -35,7 +35,7 @@ struct MetronomeView: View {
             Button {
                 metronome.toggle()
             } label: {
-                Label(metronome.isRunning ? "Arrêter le métronome" : "Démarrer le métronome",
+                Label(metronome.isRunning ? "Stop metronome" : "Start metronome",
                       systemImage: metronome.isRunning ? "stop.fill" : "play.fill")
                     .frame(maxWidth: .infinity)
             }
@@ -49,14 +49,14 @@ struct MetronomeView: View {
             DelayControls(vm: vm)
 
             if !vm.isRunning {
-                Label("La lecture n'est pas démarrée (Start) : le clic ne ressortira pas.",
+                Label("Playback isn't started (Start): the click won't come back out.",
                       systemImage: "exclamationmark.triangle")
                     .font(.caption)
                     .foregroundStyle(.orange)
             }
 
-            Text("Ajuste le délai ci-dessus jusqu'à ce que le clic entendu tombe pile quand la "
-                 + "barre atteint le repère, sur le projecteur.")
+            Text("Adjust the delay above until the click you hear lands exactly when the bar "
+                 + "reaches the marker, on the projector.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

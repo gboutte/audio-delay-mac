@@ -26,7 +26,7 @@ final class AudioDelayViewModel: ObservableObject {
     }
 
     @Published var isRunning = false
-    @Published var statusMessage = "Prêt."
+    @Published var statusMessage = "Ready."
     @Published var errorMessage: String?
 
     private let engine = DelayAudioEngine()
@@ -71,11 +71,11 @@ final class AudioDelayViewModel: ObservableObject {
 
         guard let inputID = selectedInputID,
               let inputDevice = inputDevices.first(where: { $0.id == inputID }) else {
-            errorMessage = "Choisis un périphérique d'entrée."
+            errorMessage = "Choose an input device."
             return
         }
         guard let outputID = selectedOutputID else {
-            errorMessage = "Choisis un périphérique de sortie."
+            errorMessage = "Choose an output device."
             return
         }
 
@@ -84,7 +84,7 @@ final class AudioDelayViewModel: ObservableObject {
         requestMicrophoneAccess { [weak self] granted in
             guard let self else { return }
             guard granted else {
-                self.errorMessage = "Autorisation micro refusée. Réglages › Confidentialité › Microphone."
+                self.errorMessage = "Microphone access denied. Settings › Privacy & Security › Microphone."
                 return
             }
             self.startEngine(inputDevice: inputDevice, outputID: outputID)
@@ -93,7 +93,7 @@ final class AudioDelayViewModel: ObservableObject {
 
     private func startEngine(inputDevice: AudioDevice, outputID: AudioDeviceID) {
         guard let outputDevice = outputDevices.first(where: { $0.id == outputID }) else {
-            errorMessage = "Périphérique de sortie introuvable."
+            errorMessage = "Output device not found."
             return
         }
 
@@ -118,13 +118,13 @@ final class AudioDelayViewModel: ObservableObject {
             try engine.start(aggregateDeviceID: aggID, outputChannelMap: channelMap)
             engine.delayMilliseconds = delayMs   // appliquer le délai courant dès le départ
             isRunning = true
-            statusMessage = "En lecture — \(inputDevice.name) → \(outputDevice.name), délai \(Int(delayMs)) ms."
+            statusMessage = "Playing — \(inputDevice.name) → \(outputDevice.name), delay \(Int(delayMs)) ms."
         } catch {
             engine.stop()
             aggregateService.destroy()
             provider.deactivate()
             errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
-            statusMessage = "Arrêté."
+            statusMessage = "Stopped."
         }
     }
 
@@ -132,7 +132,7 @@ final class AudioDelayViewModel: ObservableObject {
         engine.stop()
         aggregateService.destroy()   // l'agrégat est privé et éphémère : on le retire à l'arrêt.
         isRunning = false
-        statusMessage = "Arrêté."
+        statusMessage = "Stopped."
     }
 
     // MARK: - Ajustements fins du délai

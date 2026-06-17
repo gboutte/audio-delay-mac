@@ -44,7 +44,7 @@ cat > "$APP_DIR/Contents/Info.plist" <<PLIST
 <plist version="1.0">
 <dict>
     <key>CFBundleName</key>            <string>$APP_NAME</string>
-    <key>CFBundleDisplayName</key>     <string>Délai audio</string>
+    <key>CFBundleDisplayName</key>     <string>Audio Delay</string>
     <key>CFBundleExecutable</key>      <string>$APP_NAME</string>
     <key>CFBundleIdentifier</key>      <string>$BUNDLE_ID</string>
     <key>CFBundlePackageType</key>     <string>APPL</string>
@@ -56,7 +56,7 @@ cat > "$APP_DIR/Contents/Info.plist" <<PLIST
     <key>LSUIElement</key>             <true/>
     <!-- Texte affiché lors de la demande d'autorisation micro (obligatoire pour capturer l'audio). -->
     <key>NSMicrophoneUsageDescription</key>
-    <string>Cette app capture le son système (via BlackHole) pour lui appliquer un délai avant de le renvoyer vers votre sortie audio.</string>
+    <string>This app captures system audio (via BlackHole) to apply a delay before sending it to your audio output.</string>
 </dict>
 </plist>
 PLIST

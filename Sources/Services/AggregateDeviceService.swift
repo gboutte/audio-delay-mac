@@ -8,7 +8,7 @@ enum AggregateDeviceError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .creationFailed(let status):
-            return "Création du périphérique agrégé impossible (status \(status))."
+            return "Could not create the aggregate device (status \(status))."
         }
     }
 }

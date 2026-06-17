@@ -9,7 +9,7 @@ struct DelayControls: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
-                Text("Délai")
+                Text("Delay")
                 Spacer()
                 Text("\(Int(vm.delayMs)) ms")
                     .font(.system(.title3, design: .monospaced))
@@ -18,7 +18,7 @@ struct DelayControls: View {
 
             // Slider continu 0–1000 ms (réglage grossier + en direct).
             Slider(value: $vm.delayMs, in: 0...1000, step: 1) {
-                Text("Délai")
+                Text("Delay")
             } minimumValueLabel: {
                 Text("0")
             } maximumValueLabel: {

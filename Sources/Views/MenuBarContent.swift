@@ -9,7 +9,7 @@ struct MenuBarContent: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Délai audio").font(.headline)
+            Text("Audio Delay").font(.headline)
             Text(vm.statusMessage)
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -36,13 +36,13 @@ struct MenuBarContent: View {
                 openWindow(id: "main")
                 NSApplication.shared.activate(ignoringOtherApps: true)
             } label: {
-                Label("Ouvrir la fenêtre", systemImage: "macwindow")
+                Label("Open window", systemImage: "macwindow")
             }
 
             Button(role: .destructive) {
                 NSApplication.shared.terminate(nil)
             } label: {
-                Label("Quitter", systemImage: "power")
+                Label("Quit", systemImage: "power")
             }
         }
         .padding(14)
