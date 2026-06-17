@@ -32,6 +32,10 @@ final class AudioDelayViewModel: ObservableObject {
     private let engine = DelayAudioEngine()
     private let aggregateService = AggregateDeviceService()
 
+    /// Niveau crête courant (0…1) du son capturé, pour le VU-mètre. Lu à la demande par la vue
+    /// (via un `TimelineView` local) — surtout PAS publié, pour ne pas redessiner tout l'écran.
+    var inputLevel: Float { engine.inputLevel }
+
     // MARK: - Périphériques
 
     /// (Re)charge la liste des périphériques et présélectionne intelligemment.

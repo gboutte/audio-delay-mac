@@ -44,6 +44,11 @@ final class DelayAudioEngine {
     private var audioUnit: AudioUnit?
     private(set) var isRunning = false
 
+    /// Niveau crête (0…1) du son capturé sur l'entrée, mis à jour à chaque render callback.
+    /// Écrit dans le thread temps réel, lu sur le main pour le VU-mètre (lecture d'un Float
+    /// non bloquante : un déchirement éventuel est sans conséquence pour un indicateur visuel).
+    var inputLevel: Float = 0
+
     // MARK: - Ligne à retard (buffer circulaire, 2 canaux)
 
     /// Taille du buffer circulaire en images : 2 s à 48 kHz, large pour couvrir 0–1000 ms.
@@ -159,6 +164,7 @@ final class DelayAudioEngine {
         audioUnit = nil
         freeBuffers()
         writePos = 0
+        inputLevel = 0
         isRunning = false
     }
 
@@ -201,18 +207,23 @@ final class DelayAudioEngine {
         let delay = delayFrames
         let cap = ringCapacity
         var w = writePos
+        var peak: Float = 0
 
         for i in 0..<n {
             // Écrire l'échantillon courant.
-            ringL[w] = inL?[i] ?? 0
-            ringR[w] = inR?[i] ?? 0
+            let l = inL?[i] ?? 0
+            let r = inR?[i] ?? 0
+            ringL[w] = l
+            ringR[w] = r
+            peak = max(peak, max(abs(l), abs(r)))
             // Lire l'échantillon retardé (w - delay), modulo capacité.
-            let r = (w - delay + cap) % cap
-            outL?[i] = ringL[r]
-            outR?[i] = ringR[r]
+            let rp = (w - delay + cap) % cap
+            outL?[i] = ringL[rp]
+            outR?[i] = ringR[rp]
             w = (w + 1) % cap
         }
         writePos = w
+        inputLevel = peak
         return noErr
     }
 

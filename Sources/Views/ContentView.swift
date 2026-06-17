@@ -3,6 +3,8 @@ import SwiftUI
 /// Interface principale : sélecteurs entrée/sortie, curseur de délai, Start/Stop.
 struct ContentView: View {
     @StateObject private var vm = AudioDelayViewModel()
+    @StateObject private var metronome = MetronomeController()
+    @State private var showMetronome = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -10,17 +12,22 @@ struct ContentView: View {
 
             devicePickers
 
+            inputMeter
+
             Divider()
 
-            delayControls
+            DelayControls(vm: vm)
 
             Divider()
 
             footer
         }
         .padding(20)
-        .frame(minWidth: 460, minHeight: 420)
+        .frame(minWidth: 460, minHeight: 460)
         .onAppear { vm.refreshDevices() }
+        .sheet(isPresented: $showMetronome) {
+            MetronomeView(metronome: metronome, vm: vm)
+        }
     }
 
     // MARK: - Sections
@@ -35,11 +42,48 @@ struct ContentView: View {
             }
             Spacer()
             Button {
+                showMetronome = true
+            } label: {
+                Label("Métronome", systemImage: "metronome")
+            }
+            .help("Métronome de calibration : aligne le flash (image projetée) avec le clic (audio retardé).")
+
+            Button {
                 vm.refreshDevices()
             } label: {
                 Label("Rafraîchir", systemImage: "arrow.clockwise")
             }
             .help("Recharger la liste des périphériques (ex. après avoir branché l'ampli BT).")
+        }
+    }
+
+    /// VU-mètre du son capturé sur l'entrée — confirme visuellement que BlackHole reçoit du son.
+    /// Le `TimelineView` ne tourne QUE pendant la lecture et ne redessine QUE ce petit mètre
+    /// (il lit `vm.inputLevel` à la demande, sans `@Published` → pas de re-render global).
+    private var inputMeter: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Niveau d'entrée")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.secondary.opacity(0.15))
+                    if vm.isRunning {
+                        TimelineView(.periodic(from: Date(), by: 1.0 / 30.0)) { _ in
+                            // sqrt : booste visuellement les niveaux faibles (échelle perceptuelle).
+                            let level = min(1.0, Double(max(0, vm.inputLevel)).squareRoot())
+                            HStack(spacing: 0) {
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(level > 0.9 ? Color.red : Color.green)
+                                    .frame(width: geo.size.width * CGFloat(level))
+                                Spacer(minLength: 0)
+                            }
+                        }
+                    }
+                }
+            }
+            .frame(height: 10)
         }
     }
 
@@ -70,36 +114,6 @@ struct ContentView: View {
         }
     }
 
-    private var delayControls: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Délai")
-                Spacer()
-                Text("\(Int(vm.delayMs)) ms")
-                    .font(.system(.title3, design: .monospaced))
-                    .bold()
-            }
-
-            // Slider continu 0–1000 ms (réglage grossier + en direct).
-            Slider(value: $vm.delayMs, in: 0...1000, step: 1) {
-                Text("Délai")
-            } minimumValueLabel: {
-                Text("0")
-            } maximumValueLabel: {
-                Text("1000")
-            }
-
-            // Réglage fin : ±1 ms et ±10 ms.
-            HStack(spacing: 8) {
-                nudgeButton("-10", -10)
-                nudgeButton("-1", -1)
-                Spacer()
-                nudgeButton("+1", 1)
-                nudgeButton("+10", 10)
-            }
-        }
-    }
-
     private var footer: some View {
         VStack(alignment: .leading, spacing: 10) {
             if let error = vm.errorMessage {
@@ -120,10 +134,5 @@ struct ContentView: View {
             .buttonStyle(.borderedProminent)
             .tint(vm.isRunning ? .red : .accentColor)
         }
-    }
-
-    private func nudgeButton(_ label: String, _ delta: Double) -> some View {
-        Button(label) { vm.nudgeDelay(by: delta) }
-            .monospacedDigit()
     }
 }
