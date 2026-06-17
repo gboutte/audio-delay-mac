@@ -19,10 +19,17 @@ final class AudioDelayViewModel: ObservableObject {
     @Published var selectedInputID: AudioDeviceID?
     @Published var selectedOutputID: AudioDeviceID?
 
-    /// Délai en ms, lié au slider/stepper. Le `didSet` répercute en direct sur l'engine,
-    /// ce qui permet d'ajuster pendant la lecture.
-    @Published var delayMs: Double = 0 {
-        didSet { engine.delayMilliseconds = delayMs }
+    /// Clé `UserDefaults` pour persister le délai entre deux lancements de l'app.
+    private static let delayKey = "audioDelay.delayMs"
+
+    /// Délai en ms, lié au slider/stepper. Le `didSet` répercute en direct sur l'engine et
+    /// **persiste** la valeur (rechargée au prochain lancement). La valeur initiale est relue
+    /// depuis `UserDefaults` (0 par défaut si jamais réglée).
+    @Published var delayMs: Double = UserDefaults.standard.double(forKey: AudioDelayViewModel.delayKey) {
+        didSet {
+            engine.delayMilliseconds = delayMs
+            UserDefaults.standard.set(delayMs, forKey: Self.delayKey)
+        }
     }
 
     @Published var isRunning = false
