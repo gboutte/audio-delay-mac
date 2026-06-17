@@ -198,29 +198,36 @@ final class DelayAudioEngine {
             return noErr
         }
 
-        let inL = inputABL[0].mData?.assumingMemoryBound(to: Float.self)
-        let inR = (inputABL.count > 1 ? inputABL[1].mData : inputABL[0].mData)?
+        // Pointeurs unwrappés UNE fois (pas d'optional-chaining par échantillon dans le RT thread).
+        guard let inL = inputABL[0].mData?.assumingMemoryBound(to: Float.self),
+              outBuffers.count > 0,
+              let outL = outBuffers[0].mData?.assumingMemoryBound(to: Float.self) else { return noErr }
+        let inR = (inputABL.count > 1 ? inputABL[1].mData : inputABL[0].mData)!
             .assumingMemoryBound(to: Float.self)
-        let outL = outBuffers.count > 0 ? outBuffers[0].mData?.assumingMemoryBound(to: Float.self) : nil
-        let outR = outBuffers.count > 1 ? outBuffers[1].mData?.assumingMemoryBound(to: Float.self) : outL
+        let outR = (outBuffers.count > 1 ? outBuffers[1].mData : outBuffers[0].mData)!
+            .assumingMemoryBound(to: Float.self)
 
         let delay = delayFrames
         let cap = ringCapacity
         var w = writePos
+        // Position de lecture initiale (w - delay), ramenée dans [0, cap) une seule fois.
+        var rp = w - delay
+        if rp < 0 { rp += cap }
         var peak: Float = 0
 
         for i in 0..<n {
             // Écrire l'échantillon courant.
-            let l = inL?[i] ?? 0
-            let r = inR?[i] ?? 0
+            let l = inL[i]
+            let r = inR[i]
             ringL[w] = l
             ringR[w] = r
-            peak = max(peak, max(abs(l), abs(r)))
-            // Lire l'échantillon retardé (w - delay), modulo capacité.
-            let rp = (w - delay + cap) % cap
-            outL?[i] = ringL[rp]
-            outR?[i] = ringR[rp]
-            w = (w + 1) % cap
+            let a = max(abs(l), abs(r))
+            if a > peak { peak = a }
+            // Lire l'échantillon retardé, puis avancer les deux curseurs avec wrap sans modulo.
+            outL[i] = ringL[rp]
+            outR[i] = ringR[rp]
+            w += 1; if w == cap { w = 0 }
+            rp += 1; if rp == cap { rp = 0 }
         }
         writePos = w
         inputLevel = peak

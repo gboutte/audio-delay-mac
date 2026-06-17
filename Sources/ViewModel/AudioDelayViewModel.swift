@@ -27,25 +27,19 @@ final class AudioDelayViewModel: ObservableObject {
     private static let inputUIDKey = "audioDelay.inputUID"
     private static let outputUIDKey = "audioDelay.outputUID"
 
-    /// Clé `UserDefaults` pour persister le délai entre deux lancements de l'app.
-    private static let delayKey = "audioDelay.delayMs"
-
-    /// Délai en ms, lié au slider/stepper. Le `didSet` répercute en direct sur l'engine et
-    /// **persiste** la valeur (rechargée au prochain lancement). La valeur initiale est relue
-    /// depuis `UserDefaults` (0 par défaut si jamais réglée).
-    @Published var delayMs: Double = UserDefaults.standard.double(forKey: AudioDelayViewModel.delayKey) {
-        didSet {
-            engine.delayMilliseconds = delayMs
-            UserDefaults.standard.set(delayMs, forKey: Self.delayKey)
-        }
-    }
-
     @Published var isRunning = false
     @Published var statusMessage = "Ready."
     @Published var errorMessage: String?
 
     private let engine = DelayAudioEngine()
     private let aggregateService = AggregateDeviceService()
+
+    /// Contrôleur du délai, isolé (voir `DelayController`) pour que le slider ne redessine que lui.
+    let delay: DelayController
+
+    init() {
+        delay = DelayController(engine: engine)
+    }
 
     /// Niveau crête courant (0…1) du son capturé, pour le VU-mètre. Lu à la demande par la vue
     /// (via un `TimelineView` local) — surtout PAS publié, pour ne pas redessiner tout l'écran.
@@ -146,9 +140,9 @@ final class AudioDelayViewModel: ObservableObject {
             for i in 0..<usable { channelMap[i] = Int32(i) }
 
             try engine.start(aggregateDeviceID: aggID, outputChannelMap: channelMap)
-            engine.delayMilliseconds = delayMs   // appliquer le délai courant dès le départ
+            delay.applyToEngine()   // appliquer le délai courant dès le départ
             isRunning = true
-            statusMessage = "Playing — \(inputDevice.name) → \(outputDevice.name), delay \(Int(delayMs)) ms."
+            statusMessage = "Playing — \(inputDevice.name) → \(outputDevice.name), delay \(Int(delay.ms)) ms."
         } catch {
             engine.stop()
             aggregateService.destroy()
@@ -163,12 +157,6 @@ final class AudioDelayViewModel: ObservableObject {
         aggregateService.destroy()   // l'agrégat est privé et éphémère : on le retire à l'arrêt.
         isRunning = false
         statusMessage = "Stopped."
-    }
-
-    // MARK: - Ajustements fins du délai
-
-    func nudgeDelay(by deltaMs: Double) {
-        delayMs = min(1000, max(0, (delayMs + deltaMs).rounded()))
     }
 
     // MARK: - Autorisation micro

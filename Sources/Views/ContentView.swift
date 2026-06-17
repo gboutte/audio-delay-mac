@@ -16,7 +16,7 @@ struct ContentView: View {
 
             Divider()
 
-            DelayControls(vm: vm)
+            DelayControls(delay: vm.delay)
 
             Divider()
 

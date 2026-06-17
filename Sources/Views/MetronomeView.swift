@@ -46,7 +46,7 @@ struct MetronomeView: View {
             Divider()
 
             // Réglage du délai EN DIRECT, ici même, pour caler sans fermer le métronome.
-            DelayControls(vm: vm)
+            DelayControls(delay: vm.delay)
 
             if !vm.isRunning {
                 Label("Playback isn't started (Start): the click won't come back out.",
@@ -66,35 +66,42 @@ struct MetronomeView: View {
         .onDisappear { metronome.stop() }
     }
 
-    /// La piste de balayage. `TimelineView(.animation)` redessine à chaque image ; la position se
-    /// déduit du temps → mouvement fluide et régulier, insensible au jitter du thread principal.
+    /// La piste de balayage. On n'utilise `TimelineView(.animation)` (redessin à chaque image)
+    /// QUE quand le métronome tourne ; à l'arrêt, rendu statique (zéro redessin inutile).
     private var sweep: some View {
-        TimelineView(.animation) { context in
-            GeometryReader { geo in
-                let w = geo.size.width
-                let phase = metronome.phase(at: context.date)
-                // Barre : droite (phase→0) vers gauche (phase→1). Battement quand elle touche la gauche.
-                let x = w * (1 - phase)
-                // Le repère « brille » quand on approche du battement (fin de course à gauche).
-                let nearBeat = metronome.isRunning ? max(0, (phase - 0.85) / 0.15) : 0
-
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color.secondary.opacity(0.12))
-
-                    // Repère de battement (bord gauche).
-                    Rectangle()
-                        .fill(Color.accentColor)
-                        .frame(width: 4)
-                        .opacity(0.4 + 0.6 * nearBeat)
-
-                    // La barre qui balaie.
-                    Rectangle()
-                        .fill(Color.primary.opacity(metronome.isRunning ? 0.9 : 0.25))
-                        .frame(width: 4)
-                        .offset(x: x - 2)
+        GeometryReader { geo in
+            if metronome.isRunning {
+                TimelineView(.animation) { context in
+                    bar(width: geo.size.width, phase: metronome.phase(at: context.date), running: true)
                 }
+            } else {
+                bar(width: geo.size.width, phase: 0, running: false)
             }
+        }
+    }
+
+    /// Dessine la piste + le repère + la barre pour une phase donnée (0…1).
+    private func bar(width w: CGFloat, phase: Double, running: Bool) -> some View {
+        // Barre : droite (phase→0) vers gauche (phase→1). Battement quand elle touche la gauche.
+        let x = w * (1 - phase)
+        // Le repère « brille » quand on approche du battement (fin de course à gauche).
+        let nearBeat = running ? max(0, (phase - 0.85) / 0.15) : 0
+
+        return ZStack(alignment: .leading) {
+            RoundedRectangle(cornerRadius: 6)
+                .fill(Color.secondary.opacity(0.12))
+
+            // Repère de battement (bord gauche).
+            Rectangle()
+                .fill(Color.accentColor)
+                .frame(width: 4)
+                .opacity(0.4 + 0.6 * nearBeat)
+
+            // La barre qui balaie.
+            Rectangle()
+                .fill(Color.primary.opacity(running ? 0.9 : 0.25))
+                .frame(width: 4)
+                .offset(x: x - 2)
         }
     }
 }

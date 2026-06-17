@@ -29,7 +29,7 @@ struct MenuBarContent: View {
             Divider()
 
             // Réglage du délai directement depuis la barre de menus.
-            DelayControls(vm: vm)
+            DelayControls(delay: vm.delay)
 
             Divider()
 
