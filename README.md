@@ -86,6 +86,15 @@ brew install blackhole-2ch    # or: brew reinstall blackhole-2ch
 The script compiles every `.swift` in `Sources/` with `swiftc`, assembles the
 `build/AudioDelay.app` bundle (with Info.plist) and signs it ad-hoc.
 
+### Install to /Applications
+
+```bash
+./install.sh
+```
+
+Builds, then copies the app to `/Applications/AudioDelay.app`. Install there before enabling
+"Launch at login" so the login item points to a stable location (not the rebuilt `build/` folder).
+
 ## 3. Run
 
 ```bash
@@ -104,6 +113,12 @@ If you denied it: *Settings › Privacy & Security › Microphone*.
 > ```
 > Note: after a rebuild, relaunch the app (`killall AudioDelay` then `open …`) — a plain `open`
 > on an already-running app does not reload the new binary.
+
+### Launch at login
+
+From the menu bar icon's panel, toggle **"Launch at login"** to start the app automatically when
+you log in (via `SMAppService`). macOS may ask you to approve it in *Settings › General › Login
+Items*. Enable this on the **installed** copy (`/Applications`), not the one in `build/`.
 
 ## 4. Route the audio and calibrate
 

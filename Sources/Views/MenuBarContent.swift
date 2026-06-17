@@ -5,6 +5,7 @@ import AppKit
 /// même quand la fenêtre principale est fermée (le moteur, lui, continue de tourner).
 struct MenuBarContent: View {
     @ObservedObject var vm: AudioDelayViewModel
+    @ObservedObject var loginItem: LoginItemService
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
@@ -29,6 +30,18 @@ struct MenuBarContent: View {
 
             // Réglage du délai directement depuis la barre de menus.
             DelayControls(vm: vm)
+
+            Divider()
+
+            Toggle("Launch at login", isOn: Binding(
+                get: { loginItem.isEnabled },
+                set: { loginItem.setEnabled($0) }))
+            if loginItem.needsApproval {
+                Label("Approve in System Settings › General › Login Items.",
+                      systemImage: "exclamationmark.triangle")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+            }
 
             Divider()
 

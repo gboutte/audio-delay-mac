@@ -34,6 +34,7 @@ swiftc \
   -framework AppKit \
   -framework AVFoundation \
   -framework CoreAudio \
+  -framework ServiceManagement \
   $SOURCES \
   -o "$MACOS_DIR/$APP_NAME"
 

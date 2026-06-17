@@ -9,6 +9,7 @@ import SwiftUI
 struct AudioDelayApp: App {
     @StateObject private var vm = AudioDelayViewModel()
     @StateObject private var metronome = MetronomeController()
+    @StateObject private var loginItem = LoginItemService()
 
     var body: some Scene {
         // Fenêtre principale (unique, ré-ouvrable depuis le menu).
@@ -19,7 +20,7 @@ struct AudioDelayApp: App {
 
         // Icône permanente dans la barre de menus (en haut à droite).
         MenuBarExtra {
-            MenuBarContent(vm: vm)
+            MenuBarContent(vm: vm, loginItem: loginItem)
         } label: {
             Image(systemName: vm.isRunning ? "speaker.wave.2.circle.fill" : "speaker.wave.2.circle")
         }
