@@ -29,7 +29,10 @@ struct MetronomeView: View {
                     Text("\(Int(metronome.bpm)) BPM")
                         .font(.system(.body, design: .monospaced)).bold()
                 }
-                Slider(value: $metronome.bpm, in: 30...180, step: 1)
+                // Pas de `step:` (sinon ~151 tick marks → rendu lent). Continu + arrondi via le binding.
+                Slider(value: Binding(get: { metronome.bpm },
+                                      set: { metronome.bpm = $0.rounded() }),
+                       in: 30...180)
             }
 
             Button {
@@ -63,7 +66,11 @@ struct MetronomeView: View {
         }
         .padding(24)
         .frame(width: 380)
-        .onDisappear { metronome.stop() }
+        .onAppear {
+            // Pré-chauffer le moteur audio de façon différée → bouton « Start » instantané ensuite.
+            DispatchQueue.main.async { metronome.warmUp() }
+        }
+        .onDisappear { metronome.shutdown() }
     }
 
     /// La piste de balayage. On n'utilise `TimelineView(.animation)` (redessin à chaque image)

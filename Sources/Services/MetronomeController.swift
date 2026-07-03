@@ -47,29 +47,49 @@ final class MetronomeController: ObservableObject {
         return max(0, min(1, frac))
     }
 
+    /// Vrai si l'`AVAudioEngine` tourne (prêt à jouer). Distinct de `isRunning` (= bat-il ?).
+    private var engineRunning = false
+
     func toggle() { isRunning ? stop() : start() }
 
-    func start() {
-        guard !isRunning, clickBuffer != nil else { return }
+    /// Démarre l'`AVAudioEngine` (coûteux : ~30 ms) SANS encore battre. Appelé à l'ouverture de
+    /// la fenêtre métronome, de façon différée, pour que le bouton « Start » soit ensuite instantané.
+    func warmUp() {
+        guard !engineRunning, clickBuffer != nil else { return }
         do {
             try engine.start()
             player.play()
-            startDate = Date()
-            beatIndex = 0
-            isRunning = true
-            playClick()          // battement 0, tout de suite
-            scheduleNextBeat()   // puis 1, 2, 3… à heure absolue
+            engineRunning = true
         } catch {
-            isRunning = false
+            engineRunning = false
         }
     }
 
+    func start() {
+        guard !isRunning, clickBuffer != nil else { return }
+        warmUp()                 // no-op si déjà chauffé → démarrage instantané
+        startDate = Date()
+        beatIndex = 0
+        isRunning = true
+        playClick()              // battement 0, tout de suite
+        scheduleNextBeat()       // puis 1, 2, 3… à heure absolue
+    }
+
+    /// Arrête les battements mais GARDE le moteur chaud (redémarrage instantané). Coupé par `shutdown()`.
     func stop() {
         clickTimer?.invalidate()
         clickTimer = nil
-        player.stop()
-        engine.stop()
         isRunning = false
+    }
+
+    /// Coupe tout (battements + moteur). À appeler quand la fenêtre métronome se ferme.
+    func shutdown() {
+        stop()
+        if engineRunning {
+            player.stop()
+            engine.stop()
+            engineRunning = false
+        }
     }
 
     // MARK: - Privé
@@ -123,5 +143,6 @@ final class MetronomeController: ObservableObject {
         clickBuffer = buffer
         engine.attach(player)
         engine.connect(player, to: engine.mainMixerNode, format: format)
+        engine.prepare()   // pré-alloue les ressources → démarrage plus rapide ensuite
     }
 }

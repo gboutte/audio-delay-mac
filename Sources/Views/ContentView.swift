@@ -9,22 +9,16 @@ struct ContentView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             header
-
             devicePickers
-
             inputMeter
-
             Divider()
-
             DelayControls(delay: vm.delay)
-
             Divider()
-
             footer
         }
         .padding(20)
-        .frame(minWidth: 460, minHeight: 460)
-        .onAppear { vm.refreshDevices() }
+        .frame(width: 360)
+        .onAppear { DispatchQueue.main.async { vm.refreshDevices() } }
         .sheet(isPresented: $showMetronome) {
             MetronomeView(metronome: metronome, vm: vm)
         }

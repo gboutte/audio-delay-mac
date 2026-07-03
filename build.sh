@@ -20,6 +20,8 @@ MACOS_DIR="$APP_DIR/Contents/MacOS"
 echo "==> Nettoyage"
 rm -rf "$APP_DIR"
 mkdir -p "$MACOS_DIR"
+RES_DIR="$APP_DIR/Contents/Resources"
+mkdir -p "$RES_DIR"
 
 echo "==> Compilation Swift"
 # -parse-as-library : indispensable pour qu'un @main struct App soit le point d'entrée.
@@ -29,6 +31,7 @@ SOURCES=$(find "$ROOT/Sources" -name '*.swift')
 swiftc \
   -parse-as-library \
   -O \
+  -wmo \
   -target x86_64-apple-macosx13.0 \
   -framework SwiftUI \
   -framework AppKit \
@@ -37,6 +40,9 @@ swiftc \
   -framework ServiceManagement \
   $SOURCES \
   -o "$MACOS_DIR/$APP_NAME"
+
+echo "==> Icône"
+cp "$ROOT/Resources/AppIcon.icns" "$RES_DIR/AppIcon.icns"
 
 echo "==> Info.plist"
 cat > "$APP_DIR/Contents/Info.plist" <<PLIST
@@ -47,6 +53,7 @@ cat > "$APP_DIR/Contents/Info.plist" <<PLIST
     <key>CFBundleName</key>            <string>$APP_NAME</string>
     <key>CFBundleDisplayName</key>     <string>Audio Delay</string>
     <key>CFBundleExecutable</key>      <string>$APP_NAME</string>
+    <key>CFBundleIconFile</key>        <string>AppIcon</string>
     <key>CFBundleIdentifier</key>      <string>$BUNDLE_ID</string>
     <key>CFBundlePackageType</key>     <string>APPL</string>
     <key>CFBundleShortVersionString</key> <string>0.1</string>

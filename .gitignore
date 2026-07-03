@@ -8,3 +8,6 @@ build/
 .idea/
 *.xcuserstate
 .swiftpm/
+
+# Icône : on versionne le .icns final, pas l'iconset intermédiaire
+Resources/AppIcon.iconset/

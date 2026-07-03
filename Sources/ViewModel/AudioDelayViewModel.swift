@@ -39,6 +39,9 @@ final class AudioDelayViewModel: ObservableObject {
 
     init() {
         delay = DelayController(engine: engine)
+        // Énumérer les périphériques DÈS le lancement (hors de tout cycle de rendu SwiftUI) :
+        // la fenêtre s'ouvre alors instantanément avec les listes déjà prêtes.
+        refreshDevices()
     }
 
     /// Niveau crête courant (0…1) du son capturé, pour le VU-mètre. Lu à la demande par la vue
